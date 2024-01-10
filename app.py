@@ -8,6 +8,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain_openai import ChatOpenAI
+from langchain.llms.huggingface_hub import HuggingFaceHub
 
 
 from htmlTemplates import css, bot_template, user_template
@@ -31,14 +32,18 @@ def get_text_chunks(text):
 
 
 def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings()
-    # embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-base")
+    # sembeddings = OpenAIEmbeddings()
+    embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-base")
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
 
 def get_conversation_chain(vectorstore):
     llm = ChatOpenAI()
+    # llm = HuggingFaceHub(
+    #     repo_id="google/flan-t5-xxl",
+    #     model_kwargs={"temperature": 0.5, "max_length": 512},
+    # )
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(
         llm=llm, retriever=vectorstore.as_retriever(), memory=memory
@@ -78,8 +83,8 @@ def main():
     if user_question:
         handle_user_input(user_question)
 
-    st.write(user_template.replace("{{MSG}}", "hello robot"), unsafe_allow_html=True)
-    st.write(bot_template.replace("{{MSG}}", "hello human"), unsafe_allow_html=True)
+    # st.write(user_template.replace("{{MSG}}", "hello robot"), unsafe_allow_html=True)
+    # st.write(bot_template.replace("{{MSG}}", "hello human"), unsafe_allow_html=True)
 
     with st.sidebar:
         st.subheader("Your documents")
